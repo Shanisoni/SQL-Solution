@@ -1,0 +1,152 @@
+SELECT A1.student_id , A1.student_name , A2.subject_name , COUNT(A3.subject_name) AS attended_exams
+FROM Students AS A1 
+CROSS JOIN Subjects AS A2 
+LEFT JOIN Examinations AS A3
+ON A1.student_id = A3.student_id AND A2.subject_name = A3.subject_name
+GROUP BY A1.student_id , A1.student_name , A2.subject_name 
+ORDER BY student_id , subject_name
+
+
+
+
+📝 SQL Notes – LeetCode: Count Student Exam Attendance
+🎯 Goal:
+
+Show how many times each student attended each subject's exam.
+Even if the student never gave the exam, we still want to show 0.
+✅ Tables Provided:
+1. Students
+
+| student_id | student_name |
+|------------|--------------|
+| 1          | Alice        |
+| 2          | Bob          |
+
+2. Subjects
+
+| subject_name |
+|--------------|
+| Math         |
+| Physics      |
+
+3. Examinations
+
+| student_id | subject_name |
+|------------|--------------|
+| 1          | Math         |
+| 1          | Math         |
+| 1          | Physics      |
+| 2          | Math         |
+
+✳️ Final Output Needed:
+
+| student_id | student_name | subject_name | attended_exams |
+|------------|--------------|--------------|----------------|
+| 1          | Alice        | Math         | 2              |
+| 1          | Alice        | Physics      | 1              |
+| 2          | Bob          | Math         | 1              |
+| 2          | Bob          | Physics      | 0              |
+
+🧠 Step-by-Step Breakdown:
+🔹 Step 1: CROSS JOIN → Students × Subjects
+
+FROM Students AS A1
+CROSS JOIN Subjects AS A2
+
+✅ What:
+
+Creates every combination of students and subjects.
+💡 Why:
+
+Even if a student didn’t attend a subject, we want to still show them with 0.
+📊 Output:
+student_id	student_name	subject_name
+1	Alice	Math
+1	Alice	Physics
+2	Bob	Math
+2	Bob	Physics
+
+🧠 Concept:
+This is the foundation. Think of it as building the full grid of who could have taken which subject.
+🔹 Step 2: LEFT JOIN with Examinations
+
+LEFT JOIN Examinations AS A3
+  ON A1.student_id = A3.student_id 
+ AND A2.subject_name = A3.subject_name
+
+✅ What:
+
+Match exam records for those student+subject pairs. If there's no exam, we get NULL.
+💡 Why:
+
+We want to preserve all combinations, and just fill in matches from Examinations.
+📊 Output (after join):
+A1.student_id	A1.student_name	A2.subject_name	A3.subject_id	A3.subject_name
+1	Alice	Math	1	Math
+1	Alice	Math	1	Math
+1	Alice	Physics	1	Physics
+2	Bob	Math	2	Math
+2	Bob	Physics	NULL	NULL
+
+🧠 Concept:
+LEFT JOIN helps us see what data is missing (i.e. exams not taken) by leaving NULLs.
+🔹 Step 3: COUNT() — Count Exams
+
+COUNT(A3.subject_name) AS attended_exams
+
+✅ What:
+
+Count how many rows from Examinations matched.
+💡 Why:
+
+Multiple rows = multiple exam attempts. COUNT() ignores NULLs, so students who didn’t attend will get 0.
+📊 Example:
+student_id	subject_name	COUNT(A3.subject_name)
+1	Math	2
+1	Physics	1
+2	Math	1
+2	Physics	0
+
+🧠 Concept:
+Use COUNT() to summarize data — it helps convert multiple rows into a single number.
+🔹 Step 4: GROUP BY → Group by student & subject
+
+GROUP BY A1.student_id, A1.student_name, A2.subject_name
+
+✅ What:
+
+Group each student and subject pair.
+💡 Why:
+
+Without grouping, COUNT() would try to count everything at once. We want per (student, subject).
+🔹 Step 5: ORDER BY
+
+ORDER BY A1.student_id, A2.subject_name;
+
+✅ What:
+
+Sort the final output by student and subject.
+💡 Why:
+
+Clean, readable output (LeetCode wants sorted results too).
+✅ Final Query
+
+SELECT 
+  A1.student_id, 
+  A1.student_name, 
+  A2.subject_name, 
+  COUNT(A3.subject_name) AS attended_exams
+FROM Students AS A1
+CROSS JOIN Subjects AS A2
+LEFT JOIN Examinations AS A3
+  ON A1.student_id = A3.student_id AND A2.subject_name = A3.subject_name
+GROUP BY A1.student_id, A1.student_name, A2.subject_name
+ORDER BY A1.student_id, A2.subject_name;
+
+📌 Summary Table (What → Why)
+Step	What You're Doing	Why You're Doing It
+CROSS JOIN	Create every student+subject pair	To include combinations even if student didn't attend
+LEFT JOIN	Add exam data if it exists	To check how many exams were attended or missed
+COUNT()	Count how many times student took the exam	To convert rows into a meaningful number
+GROUP BY	Group per student + subject	So we get separate counts per subject per student
+ORDER BY	Sort by student, then subject	For cleaner and required output
