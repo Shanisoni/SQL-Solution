@@ -1,0 +1,96 @@
+SELECT contest_id , ROUND( COUNT(DISTINCT Register.user_id) * 100 / ( SELECT COUNT(*) FROM Users) , 2) AS percentage
+FROM Register 
+GROUP BY contest_id 
+ORDER BY percentage DESC , contest_id ASC
+
+
+
+✅ QUERY:
+
+SELECT 
+    contest_id, 
+    ROUND(COUNT(DISTINCT Register.user_id) * 100 / (SELECT COUNT(*) FROM Users), 2) AS percentage
+FROM 
+    Register 
+GROUP BY 
+    contest_id 
+ORDER BY 
+    percentage DESC, contest_id ASC;
+
+🧠 GOAL OF THE QUERY:
+
+    For each contest_id, calculate what percentage of all users have registered for that contest. Round it to 2 decimal places.
+
+📘 TABLES YOU’RE USING:
+1. Users
+
+| user_id | user_name |
+|---------|-----------|
+|   6     | Alice     |
+|   2     | Bob       |
+|   7     | Alex      |
+
+Total Users = 3
+2. Register
+
+| contest_id | user_id |
+|------------|---------|
+|    215     |   6     |
+|    209     |   2     |
+|    208     |   2     |
+|    210     |   6     |
+|    208     |   6     |
+|    209     |   7     |
+|    209     |   6     |
+|    215     |   7     |
+|    208     |   7     |
+|    210     |   2     |
+|    207     |   2     |
+|    210     |   7     |
+
+🔍 EXPLANATION OF EACH PART:
+1. SELECT contest_id
+
+You are grouping the output by contest, so each row in the result will represent one contest.
+2. COUNT(DISTINCT Register.user_id)
+
+This counts how many unique users registered for a contest.
+Why DISTINCT? Because a user can register multiple times for the same contest, but you only want to count them once per contest.
+3. (SELECT COUNT(*) FROM Users)
+
+This subquery returns the total number of users in the system.
+📌 In the example, this is 3 (Alice, Bob, Alex).
+4. ROUND(..., 2)
+
+This rounds the result to 2 decimal places.
+Example:
+If 2 out of 3 users registered:
+(2 / 3) * 100 = 66.6666... → ROUND(..., 2) gives 66.67
+5. GROUP BY contest_id
+
+This tells SQL to compute the percentage separately for each contest.
+6. ORDER BY percentage DESC, contest_id ASC
+
+    percentage DESC: Sort contests by highest percentage first.
+
+    If two contests have the same percentage, then:
+
+    contest_id ASC: Sort them by contest ID (lowest first).
+
+✅ FINAL OUTPUT EXAMPLE
+
+Given the data, this query gives:
+contest_id	percentage
+208	100.00
+209	100.00
+210	100.00
+215	66.67
+207	33.33
+
+Which is exactly the expected output!
+⭐ GOLDEN TAKEAWAYS:
+Concept	Tip
+COUNT(DISTINCT ...)	Use this when counting unique participants.
+Subqueries	Good for getting total values like all users.
+Rounding	Always match the question format (2 decimals here).
+Grouping and Ordering	Be mindful of sorting rules asked in the problem.
