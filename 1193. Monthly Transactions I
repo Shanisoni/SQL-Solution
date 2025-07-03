@@ -1,0 +1,195 @@
+SELECT DATE_FORMAT( trans_date , '%Y-%m') AS month ,
+country ,
+COUNT(*) AS trans_count , 
+SUM(CASE WHEN state = 'approved' THEN 1 ELSE 0 END) AS approved_count ,
+SUM(amount) AS trans_total_amount ,
+SUM( CASE WHEN state = 'approved' THEN amount ELSE 0 END ) AS approved_total_amount
+  FROM Transactions 
+  GROUP BY month , country
+
+
+
+
+
+
+✅ THE FULL QUERY
+
+SELECT 
+    DATE_FORMAT(trans_date, '%Y-%m') AS month,
+    country,
+    COUNT(*) AS trans_count,
+    SUM(CASE WHEN state = 'approved' THEN 1 ELSE 0 END) AS approved_count,
+    SUM(amount) AS trans_total_amount,
+    SUM(CASE WHEN state = 'approved' THEN amount ELSE 0 END) AS approved_total_amount
+FROM 
+    Transactions
+GROUP BY 
+    month, country;
+
+🔍 1. SELECT
+
+The SELECT clause is used to specify which columns or computed values you want in the output.
+
+Everything in this block is about what you want to see in your result table.
+🔍 2. DATE_FORMAT(trans_date, '%Y-%m') AS month
+✅ What it does:
+
+    Converts a full date (like 2025-07-03) into a year-month format (2025-07).
+
+    Useful for monthly reports or grouping transactions by month.
+
+📘 Example:
+trans_date	Result of DATE_FORMAT
+2025-07-03	2025-07
+2025-07-27	2025-07
+2025-06-15	2025-06
+
+Now both 3rd July and 27th July will be grouped together under 2025-07.
+🔍 3. country
+
+Just selecting the country column from the table.
+
+    This assumes each transaction has a country field like 'India', 'USA', 'UK', etc.
+
+    We'll group data per month and country combo.
+
+🔍 4. COUNT(*) AS trans_count
+✅ What it does:
+
+    Counts the total number of rows (transactions) per group.
+
+    COUNT(*) counts all rows — including NULLs — because it just checks row presence.
+
+📘 Example:
+trans_date	country	state	amount
+2025-07-01	India	approved	100
+2025-07-02	India	declined	50
+2025-07-03	India	approved	200
+
+    COUNT(*) = 3 (3 total transactions for India in July)
+
+🔍 5. SUM(CASE WHEN state = 'approved' THEN 1 ELSE 0 END) AS approved_count
+✅ What it does:
+
+    Counts only the approved transactions.
+
+    It uses a CASE WHEN statement inside SUM().
+
+🧠 Explanation:
+
+    CASE WHEN state = 'approved' THEN 1 ELSE 0 END evaluates to 1 if approved, else 0.
+
+    SUM(...) adds up all the 1s → giving us the total number of approved transactions.
+
+📘 Example:
+state	CASE WHEN...	SUM
+approved	1	1
+declined	0	0
+approved	1	1
+Total → 2 approved		
+🔍 6. SUM(amount) AS trans_total_amount
+✅ What it does:
+
+    Sums up the amount for all transactions, whether approved or declined.
+
+📘 Example:
+amount
+100
+50
+200
+Total = 100 + 50 + 200 = 350
+🔍 7. SUM(CASE WHEN state = 'approved' THEN amount ELSE 0 END) AS approved_total_amount
+✅ What it does:
+
+    Sums up the amount only where the state is 'approved'.
+
+    Same technique as before, but with amount this time.
+
+🧠 Explanation:
+
+    If a row is approved, use its amount.
+
+    Else, use 0 (which doesn’t affect the sum).
+
+    SUM(...) totals just the approved transaction amounts.
+
+📘 Example:
+state	amount	CASE WHEN...
+approved	100	100
+declined	50	0
+approved	200	200
+Total = 100 + 200 = 300		
+🔍 8. FROM Transactions
+
+The table from which all this data is fetched.
+
+Assumes the schema looks like:
+
+CREATE TABLE Transactions (
+    trans_id INT,
+    trans_date DATE,
+    country VARCHAR(50),
+    state VARCHAR(10),      -- 'approved', 'declined', etc.
+    amount INT
+);
+
+🔍 9. GROUP BY month, country
+
+This line groups all rows that have the same month and country.
+
+    This means, the aggregates (SUM, COUNT, etc.) will be calculated per group.
+
+📘 Example:
+trans_date	country	amount	state
+2025-07-01	India	100	approved
+2025-07-02	India	200	approved
+2025-07-03	USA	50	declined
+2025-07-10	India	150	declined
+
+👉 These rows will be grouped as:
+
+    2025-07 | India → 3 transactions
+
+    2025-07 | USA → 1 transaction
+
+🎯 Final Output Example:
+month	country	trans_count	approved_count	trans_total_amount	approved_total_amount
+2025-07	India	3	2	450	300
+2025-07	USA	1	0	50	0
+🧠 KEY CONCEPTS USED
+Concept	What it does
+DATE_FORMAT()	Extracts and formats parts of a date
+COUNT(*)	Counts total rows per group
+SUM(CASE WHEN ...)	Conditionally aggregates data
+GROUP BY	Divides data into logical groups
+AS	Renames the column in output
+ROUND(..., 2)	Rounds numbers to 2 decimal places
+🔍 WHY THIS QUERY IS SO POWERFUL
+
+    Combines date formatting + grouping + conditional logic.
+
+    Helps you generate a monthly country-wise transaction report.
+
+    Shows both count of transactions and actual money movement.
+
+🧪 If You Wanted Even More Insights...
+
+Here’s how you could extend it:
+
+    Add declined counts:
+
+SUM(CASE WHEN state = 'declined' THEN 1 ELSE 0 END) AS declined_count
+
+    Add declined total amounts:
+
+SUM(CASE WHEN state = 'declined' THEN amount ELSE 0 END) AS declined_total_amount
+
+💡 TL;DR Summary
+Line	Purpose
+DATE_FORMAT(trans_date, '%Y-%m')	Groups data by month
+country	Filters and groups by country
+COUNT(*)	Counts all transactions
+SUM(CASE WHEN state = 'approved' THEN 1 ELSE 0 END)	Counts only approved transactions
+SUM(amount)	Adds all transaction amounts
+SUM(CASE WHEN state = 'approved' THEN amount ELSE 0 END)	Adds approved amounts only
+GROUP BY	Ensures aggregation is per month and country
