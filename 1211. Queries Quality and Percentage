@@ -1,0 +1,132 @@
+SELECT query_name , ROUND(AVG(rating / position) , 2) AS quality , 
+ROUND( SUM(CASE WHEN rating < 3 THEN 1 ELSE 0 END) * 100 / COUNT(*) , 2) AS poor_query_percentage
+FROM Queries 
+GROUP BY query_name
+
+
+
+
+
+🔍 Query in Context
+
+SELECT 
+    query_name, 
+    ROUND(AVG(rating / position), 2) AS quality, 
+    ROUND(
+        SUM(CASE WHEN rating < 3 THEN 1 ELSE 0 END) * 100 / COUNT(*), 
+        2
+    ) AS poor_query_percentage
+FROM Queries 
+GROUP BY query_name;
+
+🔹 Purpose of the Query
+
+This SQL calculates two metrics for each query_name from the Queries table:
+
+    quality: The average of (rating / position) for each query.
+
+    poor_query_percentage: The percentage of poor queries (defined as rating < 3).
+
+🔹 Step-by-Step Breakdown
+🔸 GROUP BY query_name
+
+This groups all rows by the query_name. The aggregate functions below (AVG, SUM, COUNT) will work within each group.
+
+So, for example, if you have:
+query_name	rating	position
+SELECT	5	1
+SELECT	4	2
+INSERT	2	1
+INSERT	1	2
+
+They will be grouped as:
+
+    1 group for SELECT
+
+    1 group for INSERT
+
+🔸 ROUND(AVG(rating / position), 2) AS quality
+
+This part calculates "quality":
+⚙ How it works:
+
+    For each row, rating / position is computed.
+
+    Then, AVG() takes the average of those values within each group (i.e., per query_name).
+
+    ROUND(..., 2) rounds the result to 2 decimal places.
+
+✅ Example:
+
+For SELECT:
+Rows → (5/1 = 5.0), (4/2 = 2.0)
+AVG → (5.0 + 2.0)/2 = 3.5
+
+For INSERT:
+(2/1 = 2.0), (1/2 = 0.5)
+AVG → (2.0 + 0.5)/2 = 1.25
+
+So result:
+query_name	quality
+SELECT	3.5
+INSERT	1.25
+🔸 SUM(CASE WHEN rating < 3 THEN 1 ELSE 0 END)
+
+This counts how many rows have a rating less than 3 (poor ratings).
+💡 Explanation of CASE:
+
+    CASE WHEN rating < 3 THEN 1 ELSE 0 END → returns 1 for poor queries, 0 otherwise.
+
+    SUM(...) then adds those 1s, giving you total poor queries per query_name.
+
+🔸 COUNT(*)
+
+This counts the total number of rows per query_name.
+🔸 Final formula:
+
+ROUND(
+    SUM(CASE WHEN rating < 3 THEN 1 ELSE 0 END) * 100 
+    / COUNT(*), 
+    2
+) AS poor_query_percentage
+
+This calculates:
+
+    Percentage of poor queries = (poor query count / total) × 100
+    And rounds it to 2 decimal places.
+
+✅ Example:
+
+From previous:
+query_name	poor (rating<3)	total
+SELECT	0	2
+INSERT	2	2
+
+So:
+
+    SELECT → 0%
+
+    INSERT → (2/2)*100 = 100%
+
+✅ Final Output Example
+query_name	quality	poor_query_percentage
+SELECT	3.50	0.00
+INSERT	1.25	100.00
+🎯 Summary of Key Concepts
+Concept	What it does
+AVG(expr)	Average of expression values within a group
+ROUND(expr, 2)	Rounds result to 2 decimal places
+CASE WHEN THEN ELSE END	Used to apply conditional logic in SQL
+SUM(...)	Adds all matching values in group
+COUNT(*)	Total rows in a group
+GROUP BY	Groups rows by common column values
+AS	Renames column in output
+🧠 When to Use This Style of Query
+
+    Data analytics reports (e.g., product quality, customer satisfaction)
+
+    SQL interview challenges (especially LeetCode and HackerRank)
+
+    Business KPI dashboards (error rates, performance metrics)
+
+    Case analysis on group-level metrics
