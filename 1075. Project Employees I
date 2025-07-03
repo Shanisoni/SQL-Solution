@@ -1,0 +1,108 @@
+# Write your MySQL query statement below
+SELECT project_id ,    ROUND( AVG(A2.experience_years)  , 2) AS average_years
+FROM Project AS A1
+LEFT JOIN Employee AS A2 ON
+A1.employee_id = A2.employee_id 
+GROUP BY project_id
+
+
+
+
+ 1. SQL FUNCTIONS / OPERATORS USED
+Function / Operator	Role
+ROUND(..., 2)	Rounds the average to 2 decimal places (used for formatting & precision).
+AVG()	Aggregate function to calculate mean (average) of numeric values.
+LEFT JOIN	Returns all records from Project, even if no matching employee is found.
+GROUP BY	Groups rows by project_id to compute per-project average.
+✅ 2. WHY THESE FUNCTIONS WERE USED & ALTERNATIVES
+Function	Why Used	Alternatives / Notes
+ROUND(..., 2)	Rounds the final result to 2 decimals, usually for human-readable output.	You can skip it if raw numbers are acceptable. Also, FORMAT(x, 2) can be used, but returns string, not numeric.
+AVG()	Required to compute the average of experience_years for each project.	None equivalent. Always use AVG() for mean.
+LEFT JOIN	Ensures all projects are included, even if they don’t have any employees assigned.	Could use INNER JOIN, but it would exclude projects with NULL employees.
+GROUP BY project_id	Needed to get average per project.	Use only relevant columns in GROUP BY. Avoid grouping by unnecessary fields.
+✅ 3. LOGIC/TRICK BEHIND AVERAGE CALCULATION
+
+    AVG() automatically ignores NULL values. This is crucial:
+
+        If an employee has NULL in experience_years, they are not considered in the average.
+
+        This means: you don’t need IFNULL() or COALESCE() unless you want to treat NULL as 0 (which you should not do without domain logic).
+
+    The logic is:
+
+    For each project_id:
+      Collect all employee experience_years linked via employee_id
+      Ignore NULLs
+      Take the average
+
+✅ 4. QUERY STRUCTURE
+
+SELECT 
+  project_id, 
+  ROUND(AVG(A2.experience_years), 2) AS average_years
+FROM 
+  Project AS A1
+LEFT JOIN 
+  Employee AS A2 
+ON 
+  A1.employee_id = A2.employee_id 
+GROUP BY 
+  project_id;
+
+Structural Tips:
+
+    FROM-first thinking:
+
+        Start from Project → get employees via employee_id → then compute metrics.
+
+    Joins should connect on indexed columns (employee_id).
+
+    Grouping is done only on project_id because the final output is one row per project.
+
+✅ 5. OPTIMIZATION TIPS
+
+    ✅ Use LEFT JOIN wisely: only if you really need unmatched records (which we do here).
+
+    ✅ Avoid unnecessary subqueries — this query keeps it flat and efficient.
+
+    ✅ Use indexed join keys (employee_id) to optimize performance.
+
+    ✅ Don’t use DISTINCT unless needed (some use it unnecessarily in aggregates).
+
+    🚫 Avoid rounding inside aggregate functions during calculation — only round at the end.
+
+✅ 6. COMMON PITFALLS TO AVOID
+Mistake	Why It’s a Problem
+Using INNER JOIN instead of LEFT JOIN	Will exclude projects with no employees assigned — misleading results.
+Using IFNULL(experience_years, 0)	It will incorrectly lower the average — because you're counting people with unknown experience as 0.
+Not grouping by project_id	Leads to aggregate error or wrong results.
+Using ROUND() too early	Can cause precision issues if you round before full calculation.
+✅ 7. PATTERNS YOU SHOULD RECOGNIZE
+Pattern	Description
+📊 "Group and Aggregate"	You frequently group by a category (like project_id) and calculate AVG, SUM, etc.
+🔗 "Join before Grouping"	Get data from multiple tables first, then group.
+📉 "Missing data handling"	LEFT JOIN + AVG = careful NULL handling.
+🎯 "Display-friendly Output"	Use ROUND() to make the output cleaner and presentable.
+✅ 8. SQL BEST PRACTICES (FOR INTERVIEWS & READABILITY)
+
+    ✅ Alias tables (AS A1, AS A2) for cleaner joins.
+
+    ✅ Use readable, lowercase keywords (optional but improves readability).
+
+    ✅ Avoid magic numbers – write a comment when you round to 2 decimal places.
+
+    ✅ Use consistent formatting — align SELECT, FROM, JOIN, etc.
+
+    ✅ Don’t hardcode null replacements unless backed by business logic.
+
+    ✅ Be precise in naming your output fields — average_years is self-explanatory.
+
+🧠 TL;DR CHEAT SHEET
+Principle	Key Takeaway
+📘 JOIN Logic	Use LEFT JOIN when retaining all from the left table
+📘 Aggregation	AVG() ignores NULLs — don't need IFNULL unless converting to 0
+📘 Formatting	ROUND() only for display
+📘 Grouping	Always group by columns you want one row per
+📘 Null Pitfalls	Don’t turn NULLs into 0 unless specified
+📘 Optimization	Avoid extra subqueries, use indexes on join keys
+📘 Readability	Alias tables, use formatting, write expressive column names
