@@ -1,0 +1,125 @@
+# Write your MySQL query statement below
+SELECT A1.user_id , ROUND( 
+    AVG( 
+        CASE 
+          WHEN A2.action = 'confirmed' THEN 1.00
+           ELSE 0 
+           END
+           ) , 2)  AS confirmation_rate
+FROM Signups  AS A1
+LEFT JOIN ConfirmationS AS A2 
+ON A1.user_id = A2.user_id
+GROUP BY user_id
+
+
+
+
+
+✅ Given Tables
+Signups
+user_id	time_stamp
+3	2020-03-21 10:16:13
+7	2020-01-04 13:57:59
+2	2020-07-29 23:09:44
+6	2020-12-09 10:39:37
+Confirmations
+user_id	time_stamp	action
+3	2021-01-06 03:30:46	timeout
+3	2021-07-14 14:00:00	timeout
+7	2021-06-12 11:57:29	confirmed
+7	2021-06-13 12:58:28	confirmed
+7	2021-06-14 13:59:27	confirmed
+2	2021-01-22 00:00:00	confirmed
+2	2021-02-28 23:59:59	timeout
+🔍 SQL Query
+
+SELECT A1.user_id,
+       ROUND(
+           AVG(
+               CASE 
+                   WHEN A2.action = 'confirmed' THEN 1.00
+                   ELSE 0
+               END
+           ), 2
+       ) AS confirmation_rate
+FROM Signups AS A1
+LEFT JOIN Confirmations AS A2 
+    ON A1.user_id = A2.user_id
+GROUP BY user_id;
+
+🔧 STEP-BY-STEP EXPLANATION
+✅ Step 1: FROM Signups AS A1
+
+Start from the Signups table, alias it as A1.
+✅ Step 2: LEFT JOIN Confirmations AS A2 ON A1.user_id = A2.user_id
+
+This joins each user in Signups with matching rows from Confirmations (if any). If a user has no confirmation, the fields from Confirmations will be NULL.
+✅ Intermediate JOINED Table:
+A1.user_id	A1.time_stamp	A2.time_stamp	A2.action
+3	2020-03-21 10:16:13	2021-01-06 03:30:46	timeout
+3	2020-03-21 10:16:13	2021-07-14 14:00:00	timeout
+7	2020-01-04 13:57:59	2021-06-12 11:57:29	confirmed
+7	2020-01-04 13:57:59	2021-06-13 12:58:28	confirmed
+7	2020-01-04 13:57:59	2021-06-14 13:59:27	confirmed
+2	2020-07-29 23:09:44	2021-01-22 00:00:00	confirmed
+2	2020-07-29 23:09:44	2021-02-28 23:59:59	timeout
+6	2020-12-09 10:39:37	NULL	NULL
+✅ Step 3: CASE WHEN A2.action = 'confirmed' THEN 1.00 ELSE 0 END
+
+We convert each confirmation to:
+
+    1.00 if the action is 'confirmed'
+
+    0 otherwise (including timeout or NULL)
+
+Let’s calculate per user:
+user 3:
+
+    timeout → 0
+
+    timeout → 0
+    → AVG = (0 + 0) / 2 = 0.00
+
+user 7:
+
+    confirmed → 1.00
+
+    confirmed → 1.00
+
+    confirmed → 1.00
+    → AVG = (1 + 1 + 1) / 3 = 1.00
+
+user 2:
+
+    confirmed → 1.00
+
+    timeout → 0
+    → AVG = (1 + 0) / 2 = 0.50
+
+user 6:
+
+    no confirmations → NULL
+    → AVG = (0) → we assume 0/1 = 0.00 (MySQL treats NULLs as skipped in AVG, so only 1 row = 0)
+
+✅ Step 4: AVG(...) and ROUND(..., 2)
+
+We calculate the average confirmation rate per user, then round to 2 decimal places.
+✅ FINAL RESULT
+user_id	confirmation_rate
+2	0.50
+3	0.00
+6	0.00
+7	1.00
+📘 Summary (for future notes):
+
+    LEFT JOIN ensures every user from Signups is included.
+
+    CASE WHEN is used to convert confirmed into numeric (1/0) for averaging.
+
+    AVG() calculates the average of those numeric values per user.
+
+    ROUND(..., 2) makes the result more readable.
+
+    Users with no confirmations (like user 6) get a rate of 0.00.
+
+Let me know if you want the same query written in PostgreSQL or with a CTE!
