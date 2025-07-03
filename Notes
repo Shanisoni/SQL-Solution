@@ -1,0 +1,67 @@
+✅ SQL IN Operator – Simple Notes
+📌 What is IN?
+
+The IN operator is used to check if a value exists in a list.
+
+It’s a shortcut for using multiple OR conditions.
+📘 Syntax:
+
+SELECT column_name
+FROM table_name
+WHERE column_name IN (value1, value2, value3, ...);
+
+💡 Why use it?
+
+To filter data where a column matches any value from a list.
+🔹 Example 1: IN with values
+👨‍🎓 Table: Students
+id	name	grade
+1	Ravi	A
+2	Sita	B
+3	Mohan	C
+📌 Query:
+
+SELECT name
+FROM Students
+WHERE grade IN ('A', 'B');
+
+✅ Output:
+name
+Ravi
+Sita
+🔹 Example 2: IN with subquery
+🧑‍💼 Table: Customers
+customer_id	name	is_vip
+1	Rohan	YES
+2	Simran	NO
+3	Priya	YES
+📦 Table: Orders
+order_id	customer_id	item
+101	1	Laptop
+102	2	USB Cable
+103	3	Monitor
+📌 Query:
+
+SELECT item
+FROM Orders
+WHERE customer_id IN (
+  SELECT customer_id FROM Customers WHERE is_vip = 'YES'
+);
+
+✅ Output:
+item
+Laptop
+Monitor
+🔄 NOT IN = Opposite of IN
+
+SELECT name FROM Students
+WHERE grade NOT IN ('C');
+
+This will return students who did not get grade 'C'.
+🚀 Summary:
+Use	Description
+IN	Matches any value in the list
+NOT IN	Excludes values in the list
+Works with	Text, numbers, dates, subqueries
+Shortcut for	= OR = OR =
+Safer with	Small/medium lists or subqueries
