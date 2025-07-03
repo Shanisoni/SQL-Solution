@@ -1,0 +1,81 @@
+# Write your MySQL query statement below
+SELECT A1.product_id , ROUND(COALESCE(SUM(A1.price * A2.units) / SUM(A2.units) , 0), 2) AS average_price
+FROM Prices AS A1
+LEFT JOIN UnitsSold AS A2
+ON A1.product_id = A2.product_id
+AND purchase_date BETWEEN start_date AND end_date
+GROUP BY A1.product_id
+
+
+🏅 Golden SQL Points from "Average Selling Price"
+🔸 1. Join with Date Range Matching
+
+... JOIN UnitsSold u
+ON p.product_id = u.product_id
+AND u.purchase_date BETWEEN p.start_date AND p.end_date
+
+✅ Match rows based on date — this is a powerful real-world technique.
+
+    🔥 Use Case: Find valid prices, discounts, contracts, or bookings based on dates.
+
+🔸 2. Calculate Revenue Using Aggregates
+
+SUM(u.units * p.price)
+
+✅ Multiply related columns across tables and then aggregate.
+
+    🔥 Use Case: Calculating totals like revenue, cost, or weighted averages.
+
+🔸 3. Handling NULL with IFNULL() or COALESCE()
+
+ROUND(IFNULL(sum(price × units) / sum(units), 0), 2)
+
+✅ Prevents errors like division by NULL and ensures missing data returns 0.
+
+    💡 IFNULL() is MySQL-specific, COALESCE() is portable.
+
+🔸 4. Use ROUND(..., 2) to Format Result
+
+ROUND(..., 2)
+
+✅ Required when the result must be in 2 decimal places, such as money, average price, percentages, etc.
+
+    🪙 Always round in financial calculations for accuracy & presentation.
+
+🔸 5. LEFT JOIN to Handle “No Data” Cases
+
+LEFT JOIN UnitsSold ...
+
+✅ Includes products even if they had no sales (important to avoid missing rows).
+
+    🧠 Think: "Include all from Prices, even if no match in UnitsSold."
+
+🔸 6. Group By to Aggregate Per Product
+
+GROUP BY p.product_id
+
+✅ Always needed when using SUM(), AVG(), etc. per group.
+
+    🎯 Think: “One result per product/customer/date/group.”
+
+🔸 7. Modular Thinking for Weighted Average
+
+AVG = total_value / total_weight
+
+✅ In this case:
+
+    Value = price * units
+
+    Weight = units
+
+    📊 This is weighted average, not simple average.
+
+📌 TL;DR Summary for Future Reference
+Concept	SQL Feature Used	Why Important
+Join on Date Range	BETWEEN start AND end	Time-sensitive data joins
+Revenue Calculation	SUM(price × units)	Real-world business logic
+Handle NULL	IFNULL() or COALESCE()	Safe math & cleaner output
+Format Output	ROUND(..., 2)	Clean display of decimals
+Include All Products	LEFT JOIN	Avoid missing data in result
+Per Group Calculation	GROUP BY product_id	Needed for aggregation
+Weighted Average	sum(weight × value)/sum(wt)	Interview favorite
