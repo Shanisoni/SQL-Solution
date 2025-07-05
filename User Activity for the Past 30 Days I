@@ -1,0 +1,77 @@
+SELECT activity_date AS day, COUNT(user_id) AS active_users
+FROM (
+    SELECT DISTINCT user_id, activity_date
+    FROM Activity
+    WHERE activity_date BETWEEN '2019-06-28' AND '2019-07-27'
+) AS sub
+GROUP BY activity_date
+
+
+
+✅ FINAL QUERY:
+
+SELECT activity_date AS day, COUNT(user_id) AS active_users
+FROM (
+    SELECT DISTINCT user_id, activity_date
+    FROM Activity
+    WHERE activity_date BETWEEN '2019-06-28' AND '2019-07-27'
+) AS sub
+GROUP BY activity_date
+
+🔄 STEP-BY-STEP FLOW (With Reasoning)
+🧩 Step 1: FROM Activity
+
+    🔍 Why?
+    We are working with the Activity table, which holds all user interactions. This is the source of all data.
+
+🧩 Step 2: WHERE activity_date BETWEEN '2019-06-28' AND '2019-07-27'
+
+    🔍 Why?
+    The question asks for data from a 30-day window ending on 2019-07-27.
+    We use BETWEEN to filter only those records that fall inside the range.
+    This helps ignore unnecessary data outside the required period.
+
+🧩 Step 3: SELECT DISTINCT user_id, activity_date
+
+    🔍 Why?
+    We want to count each user only once per day, no matter how many actions they performed.
+    Using DISTINCT removes duplicates like:
+
+(1, '2019-07-20'), (1, '2019-07-20') → becomes just one (1, '2019-07-20')
+
+This gives us the true daily activity record: one row per active user per day.
+🧩 Step 4: Wrap it in a Subquery (aka Derived Table)
+
+    🔍 Why?
+    We want to use this cleaned-up data (user_id, activity_date) as a base to calculate the daily active user count.
+
+By wrapping it in:
+
+FROM (
+   ... your cleaned data ...
+) AS sub
+
+We treat it like a temporary table for the final aggregation step.
+🧩 Step 5: GROUP BY activity_date
+
+    🔍 Why?
+    We want to group the rows by each unique day so we can count users active per day.
+
+This gives us one result per day.
+🧩 Step 6: SELECT activity_date AS day, COUNT(user_id) AS active_users
+
+    🔍 Why?
+
+    activity_date AS day: We rename the column to match the required output format.
+
+    COUNT(user_id): After grouping, this counts how many unique users were active on each day.
+
+🧠 Summary Table (Cheat Sheet):
+SQL Part	Why It’s Used
+FROM Activity	Use the main data table
+WHERE activity_date BETWEEN ...	Limit to 30-day window
+SELECT DISTINCT user_id, activity_date	Remove duplicates to count each user once/day
+Subquery (AS sub)	Build a temporary clean table for final count
+GROUP BY activity_date	Organize data per day
+COUNT(user_id)	Count unique users per day
+AS day	Rename for cleaner output
