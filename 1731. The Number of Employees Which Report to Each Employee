@@ -1,0 +1,164 @@
+SELECT A1.employee_id , A1.name , COUNT(A2.reports_to) AS reports_count, ROUND(AVG(A2.age)) AS average_age
+FROM Employees AS A1
+JOIN Employees AS A2 ON
+A1.employee_id = A2.reports_to 
+GROUP BY A1.employee_id , A1.name
+ORDER BY employee_id
+
+
+🔄 Problem Recap
+
+We’re given a table Employees:
+employee_id	name	reports_to	age
+1	Michael	NULL	45
+2	Alice	1	38
+3	Bob	1	42
+4	Charlie	2	34
+5	David	2	40
+6	Eve	3	37
+
+We need to:
+
+    Identify managers (those who have direct reports),
+
+    Return:
+
+        their employee_id
+
+        their name
+
+        count of direct reports
+
+        average age of those reports (rounded)
+
+    Sort by manager ID
+
+Now let’s break your query line by line:
+✅ Full Query:
+
+SELECT 
+  A1.employee_id, 
+  A1.name, 
+  COUNT(A2.reports_to) AS reports_count, 
+  ROUND(AVG(A2.age)) AS average_age
+FROM Employees AS A1
+JOIN Employees AS A2 
+  ON A1.employee_id = A2.reports_to
+GROUP BY A1.employee_id, A1.name
+ORDER BY employee_id;
+
+🚀 FLOW-WISE + WORD-BY-WORD EXPLANATION
+🔹 SELECT
+
+    This tells SQL what columns to show in the final result.
+
+🔹 A1.employee_id
+
+    Select the ID of the manager.
+
+    A1 is an alias for the first copy of the table (manager side).
+
+    This uniquely identifies the manager.
+
+🔹 A1.name
+
+    Select the name of the manager.
+
+    Again from alias A1, because this is the manager's data.
+
+🔹 COUNT(A2.reports_to) AS reports_count
+
+    Counts how many employees report to this manager.
+
+    A2 is the second alias (employee side).
+
+    A2.reports_to contains the employee_id of the manager.
+
+    So counting A2.reports_to gives you how many times A1 appears as a manager.
+
+📌 This is required to answer: "how many employees report to each manager?"
+🔹 ROUND(AVG(A2.age)) AS average_age
+
+    This calculates:
+
+    The average age of all employees (A2) reporting to a manager (A1).
+
+    AVG() → computes the average
+
+    ROUND() → rounds it to the nearest integer (as required)
+
+📌 This is required to answer: "what is the average age of each manager's team?"
+🔹 FROM Employees AS A1
+
+    We start with the Employees table and give it an alias A1.
+
+📌 A1 is used to represent managers.
+🔹 JOIN Employees AS A2
+
+    We join the same table again and alias it as A2.
+
+📌 A2 represents employees who report to a manager.
+🔹 ON A1.employee_id = A2.reports_to
+
+    This is the self-join condition.
+
+Meaning:
+
+    For every employee A2, we look at their reports_to column (which is a manager's ID).
+
+    We match it to the employee_id of someone in A1.
+
+📌 This creates a row for every (manager, employee) pair.
+🔹 GROUP BY A1.employee_id, A1.name
+
+    This groups all (manager, employee) pairs by manager.
+
+📌 Now for each manager, we can:
+
+    Count their employees
+
+    Average their ages
+
+🔹 ORDER BY employee_id
+
+    Sorts the final output in ascending order of manager IDs.
+
+✅ Final output will be clean and in correct order.
+🔄 VISUAL FLOW
+
+Here's how it works step by step:
+✅ Step 1: Self-Join
+
+Each employee (A2) gets joined with their manager (A1).
+
+🔁 Matches like:
+A1.employee_id (Manager)	A1.name	A2.employee_id	A2.name	A2.age
+1	Michael	2	Alice	38
+1	Michael	3	Bob	42
+2	Alice	4	Charlie	34
+2	Alice	5	David	40
+3	Bob	6	Eve	37
+✅ Step 2: Grouping
+
+Group the above table by A1 (manager), then:
+
+    COUNT how many rows per group = reports_count
+
+    AVG the A2.age values = average_age
+
+✅ Step 3: Output
+employee_id	name	reports_count	average_age
+1	Michael	2	40
+2	Alice	2	37
+3	Bob	1	37
+📚 Quick Revision Cheatsheet
+Keyword	Meaning
+SELECT	Choose what columns to output
+FROM Employees AS A1	Use table once for manager side
+JOIN Employees AS A2	Use table again for employee side
+ON A1.employee_id = A2.reports_to	Match employees with managers
+COUNT(A2.reports_to)	Count how many employees report to manager
+AVG(A2.age)	Average of their ages
+ROUND()	Make it a whole number
+GROUP BY A1.employee_id	Aggregate per manager
+ORDER BY	Sort results
