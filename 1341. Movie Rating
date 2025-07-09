@@ -1,0 +1,251 @@
+(
+    SELECT 
+        A1.name AS results
+    FROM 
+        Users AS A1
+    LEFT JOIN 
+        MovieRating AS A2 
+        ON A1.user_id = A2.user_id
+    GROUP BY 
+        A2.user_id
+    ORDER BY 
+        COUNT(A2.user_id) DESC, 
+        A1.name
+    LIMIT 1
+)
+
+UNION ALL
+
+(
+    SELECT 
+        A3.title AS results
+    FROM 
+        Movies AS A3
+    LEFT JOIN 
+        MovieRating AS A2 
+        ON A2.movie_id = A3.movie_id
+    WHERE 
+        EXTRACT(YEAR_MONTH FROM created_at) = 202002
+    GROUP BY 
+        A3.movie_id
+    ORDER BY 
+        AVG(rating) DESC, 
+        A3.title
+    LIMIT 1
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+🔍 THE FULL QUERY (Two parts joined by UNION ALL)
+
+(SELECT A1.name AS results 
+ FROM Users AS A1 
+ LEFT JOIN MovieRating AS A2 ON A1.user_id = A2.user_id 
+ GROUP BY A2.user_id 
+ ORDER BY COUNT(A2.user_id) DESC, A1.name 
+ LIMIT 1)
+
+UNION ALL
+
+(SELECT A3.title AS results 
+ FROM Movies AS A3 
+ LEFT JOIN MovieRating AS A2 ON A2.movie_id = A3.movie_id 
+ WHERE EXTRACT(YEAR_MONTH FROM created_at) = 202002 
+ GROUP BY A3.movie_id 
+ ORDER BY AVG(rating) DESC, A3.title  
+ LIMIT 1)
+
+🧩 TABLE SCHEMA AND SAMPLE DATA
+👤 Users table
+user_id	name
+1	Alice
+2	Bob
+3	Charlie
+🎬 Movies table
+movie_id	title
+1	Avengers
+2	Joker
+3	Parasite
+⭐ MovieRating table
+movie_id	user_id	rating	created_at
+1	1	5	2020-02-20
+2	1	3	2020-01-05
+3	2	4	2020-02-15
+2	2	5	2020-02-17
+1	3	4	2020-03-10
+🔹 PART 1: Finding the Most Active User
+👉 Goal: Find the user who gave the most number of ratings.
+1️⃣ SELECT A1.name AS results
+
+    SELECT is the keyword to specify what columns we want in the output.
+
+    A1.name gets the name of the user (from Users table).
+
+    AS results renames the output column to a generic name (results), so both parts of the UNION ALL return the same column name.
+
+🧠 Reason: Required for UNION ALL – all SELECTs must return the same number of columns with compatible data types.
+2️⃣ FROM Users AS A1
+
+    Users is the table of all users.
+
+    We alias it as A1 to write shorter references like A1.name.
+
+3️⃣ LEFT JOIN MovieRating AS A2 ON A1.user_id = A2.user_id
+
+    We're joining the Users table with the MovieRating table based on the user_id column.
+
+    A LEFT JOIN means:
+
+        Include all users, even if they haven't rated any movie (A2 columns will be NULL in that case).
+
+🔍 Intermediate Join Result:
+name	movie_id	rating	created_at
+Alice	1	5	2020-02-20
+Alice	2	3	2020-01-05
+Bob	3	4	2020-02-15
+Bob	2	5	2020-02-17
+Charlie	1	4	2020-03-10
+4️⃣ GROUP BY A2.user_id
+
+    Grouping by user ID means we will calculate aggregates (like count) per user.
+
+🧠 Why group by A2.user_id?
+
+    Because after the join, we want to count how many ratings each user has given.
+
+📌 Counts:
+user_id	count(A2.user_id)
+1	2
+2	2
+3	1
+5️⃣ ORDER BY COUNT(A2.user_id) DESC, A1.name
+
+    First, sort by descending count: so the most active user comes first.
+
+    Second, if two users have the same number of ratings, sort alphabetically by name.
+
+📌 In our data:
+
+    Alice → 2 ratings
+
+    Bob → 2 ratings
+
+    Charlie → 1 rating
+
+Since Alice and Bob tie → we pick Alice due to alphabetical order.
+6️⃣ LIMIT 1
+
+    Only show the top result.
+
+✅ Output of PART 1:
+
+| results |
+|---------|
+| Alice   |
+
+🔹 PART 2: Highest Average Rated Movie in February 2020
+👉 Goal: Find the movie with the highest average rating in Feb 2020.
+1️⃣ SELECT A3.title AS results
+
+    Return the movie title as output.
+
+    Rename as results to be compatible with part 1 (for UNION ALL).
+
+2️⃣ FROM Movies AS A3
+
+    Use the Movies table, alias as A3.
+
+3️⃣ LEFT JOIN MovieRating AS A2 ON A2.movie_id = A3.movie_id
+
+    Join movies with their ratings.
+
+Why LEFT JOIN?
+
+    So that even movies without ratings in Feb 2020 appear (just in case, although filtered later).
+
+4️⃣ WHERE EXTRACT(YEAR_MONTH FROM created_at) = 202002
+
+    This filters only the rows where the rating was given in February 2020.
+
+    EXTRACT(YEAR_MONTH FROM created_at):
+
+        From 2020-02-20 → gives 202002
+
+        From 2020-03-10 → gives 202003
+
+📌 Ratings in Feb 2020:
+movie_id	rating
+1	5
+2	5
+3	4
+5️⃣ GROUP BY A3.movie_id
+
+    We need to compute average rating per movie.
+
+6️⃣ ORDER BY AVG(rating) DESC, A3.title
+
+    Sort by:
+
+        Highest average rating
+
+        Lexicographically smallest title in case of tie
+
+📌 Calculated Averages:
+movie	avg_rating
+Avengers	5.0
+Joker	5.0
+Parasite	4.0
+
+Tie between Avengers and Joker → pick Avengers.
+7️⃣ LIMIT 1
+
+    Only keep top-rated movie.
+
+✅ Output of PART 2:
+
+| results  |
+|----------|
+| Avengers |
+
+🔁 UNION ALL
+Why UNION ALL?
+
+    Combines both results into a single column/table.
+
+    Keeps all rows, even if duplicate values exist (not needed here, but a good habit).
+
+| results  |
+|----------|
+| Alice    |
+| Avengers |
+
+✅ FINAL OUTPUT
+results
+Alice
+Avengers
+🧠 KEY SQL CONCEPTS USED (Explained in Full)
+Keyword/Syntax	Purpose
+SELECT	Chooses which columns to display
+AS	Renames column/table/alias
+FROM	Declares which table we’re selecting from
+LEFT JOIN	Combines two tables while keeping unmatched left table rows
+ON	Specifies join condition
+GROUP BY	Allows aggregate functions (COUNT, AVG) per group
+ORDER BY	Sorts output by columns, ASC (default) or DESC
+COUNT()	Counts rows (non-null values by default)
+AVG()	Calculates average of a column
+EXTRACT(YEAR_MONTH FROM ...)	Gets year and month as single number (e.g., 202002)
+WHERE	Filters rows before grouping
+LIMIT	Restricts number of output rows
+UNION ALL	Combines results from multiple SELECTs, keeping duplicates
