@@ -1,0 +1,228 @@
+SELECT id, COUNT(*) AS num
+FROM (
+    SELECT requester_id AS id FROM RequestAccepted
+    UNION ALL
+    SELECT accepter_id AS id FROM RequestAccepted
+) AS friends
+GROUP BY id
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
+
+
+✅ Problem Summary
+
+You’re given a table called RequestAccepted:
+requester_id	accepter_id	accept_date
+1	2	2016-06-03
+1	3	2016-06-08
+2	3	2016-06-08
+3	4	2016-06-09
+
+Each row means: requester_id sent a request to accepter_id, and the request was accepted.
+
+Since friendship is mutual, both the requester and accepter are considered each other's friends.
+🎯 Final Goal
+
+You want to find:
+
+    The ID of the person who has the highest number of friends
+
+    And the total number of friends that person has
+
+🔍 FULL QUERY:
+
+SELECT id, COUNT(*) AS num
+FROM (
+    SELECT requester_id AS id FROM RequestAccepted
+    UNION ALL
+    SELECT accepter_id AS id FROM RequestAccepted
+) AS friends
+GROUP BY id
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
+🔎 STEP-BY-STEP MICRO-LEVEL BREAKDOWN
+🔹 1. INNER SUBQUERY (FROM...)
+
+(
+    SELECT requester_id AS id FROM RequestAccepted
+    UNION ALL
+    SELECT accepter_id AS id FROM RequestAccepted
+)
+
+🔸 Goal:
+
+Create one single column called id that includes all people involved in friendships — whether they sent or received the request.
+🧠 What each part does:
+🔹 SELECT requester_id AS id FROM RequestAccepted
+
+    SELECT tells SQL: get the values from the table.
+
+    requester_id is the column from the RequestAccepted table. It tells who sent the friend request.
+
+    AS id renames the column temporarily as id so that both this and the next part match.
+
+👉 Example output from this part:
+id
+1
+1
+2
+3
+
+(from the requester side)
+🔹 UNION ALL
+
+    Combines the results of two queries without removing duplicates.
+
+    This is very important here! We want to count every instance of a person being involved in a friendship.
+
+    UNION would remove duplicate rows, but UNION ALL keeps them, which is what we want when counting.
+
+🔹 SELECT accepter_id AS id FROM RequestAccepted
+
+    Similar to the previous SELECT, but this time for the accepter_id column.
+
+    These are the people who accepted the requests — i.e., also friends.
+
+👉 Example output from this part:
+id
+2
+3
+3
+4
+📦 Final result of the whole subquery:
+
+| id |
+|----|
+| 1  |  -- requester_id
+| 1  |
+| 2  |
+| 3  |
+| 2  |  -- accepter_id
+| 3  |
+| 3  |
+| 4  |
+
+This is the full list of friend participations — 8 rows, each showing a person who was involved in a friendship.
+🔹 2. GIVE IT A NAME (Derived Table)
+
+AS friends
+
+    This gives the above subquery a temporary table name.
+
+    Now we can treat it like a virtual table and refer to it as friends.
+
+📦 Think of it like:
+
+friends = table(
+  id
+  --
+  1
+  1
+  2
+  3
+  2
+  3
+  3
+  4
+)
+
+🔹 3. GROUP BY id
+
+GROUP BY id
+
+    Groups all rows by each unique id.
+
+    So all rows for 1, all for 2, all for 3, etc., are grouped together.
+
+📦 Internally, it looks like this:
+id	Count
+1	2
+2	2
+3	3
+4	1
+🔹 4. COUNT(*)
+
+COUNT(*) AS num
+
+    COUNT(*) counts how many rows are in each group.
+
+    This tells us how many times each person appeared in friendships → which means how many friends they have.
+
+🎯 So:
+
+    1 appears 2 times → has 2 friends
+
+    3 appears 3 times → has 3 friends
+
+🔹 5. SELECT id, COUNT(*) AS num
+
+SELECT id, COUNT(*) AS num
+
+    This selects the user ID and their number of friends
+
+    AS num gives the column a name: num = number of friends
+
+🎯 Output before sorting:
+id	num
+1	2
+2	2
+3	3
+4	1
+🔹 6. ORDER BY COUNT(*) DESC
+
+ORDER BY COUNT(*) DESC
+
+    Orders the grouped results by the number of friends (count) in descending order (highest first).
+
+    This makes sure the person with the most friends comes first.
+
+🔹 7. LIMIT 1
+
+LIMIT 1
+
+    Restricts the result to just one row — the top person.
+
+    Because the question guarantees that only one person has the most friends, this is safe.
+
+✅ Final Output:
+id	num
+3	3
+✅ What This Query Solves:
+
+It finds:
+
+    The person who appears most in friendships, regardless of whether they were sender or receiver.
+
+    The total number of times they appear = number of friends.
+
+    It returns just one person who has the most friends.
+
+📚 Summary of Every SQL Syntax Used
+SQL Keyword	Used For
+SELECT	Chooses which columns/data to show
+AS	Renames a column or subquery for clarity
+UNION ALL	Combines results from two SELECT queries, keeps duplicates
+FROM (...)	Allows using a subquery as a temporary table
+GROUP BY	Groups rows by a common column value
+COUNT(*)	Counts how many rows in each group
+ORDER BY	Sorts results based on one or more columns
+DESC	Descending order (largest to smallest)
+LIMIT 1	Returns only the first row (highest count)
+🧪 Want to Practice?
+Try on this dataset:
+requester_id	accepter_id
+1	2
+1	3
+2	3
+3	4
+4	5
+5	3
+What would the output be?
+
+Try to count how many times each ID appears!
+
+Would you like this explanation saved as a PDF, Notion note, or even a commented SQL file?
+
+Let me know bro — I can make it super easy to store for your future interviews or learning!
