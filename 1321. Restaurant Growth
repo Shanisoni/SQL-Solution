@@ -1,0 +1,191 @@
+# Write your MySQL query statement below
+SELECT visited_on,
+( SELECT SUM(amount)  FROM Customer WHERE visited_on BETWEEN DATE_SUB(A1.visited_on , INTERVAL 6 DAY ) AND A1.visited_on )  AS amount ,
+ROUND(( SELECT SUM(amount)/7 FROM Customer WHERE visited_on BETWEEN DATE_SUB(A1.visited_on , INTERVAL 6 DAY ) AND A1.visited_on) , 2 ) AS average_amount
+FROM Customer AS A1 WHERE visited_on >= ( SELECT DATE_ADD(MIN(visited_on) , INTERVAL 6 DAY) FROM Customer ) GROUP BY visited_on ORDER BY visited_on
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+🧠 Goal of the Query
+
+You're working with a table called Customer that looks something like:
+customer_id	visited_on	amount
+1	2024-01-01	100
+2	2024-01-02	150
+3	2024-01-03	80
+...	...	...
+
+The task is to calculate, for each day starting from the 7th:
+
+    The total amount spent in the past 7 days (including that day).
+
+    The average per day (i.e., total/7), rounded to two decimal places.
+
+🔍 Step-by-Step Explanation
+🔸 Query Overview
+
+SELECT visited_on,
+  (SELECT SUM(amount)
+   FROM Customer
+   WHERE visited_on BETWEEN DATE_SUB(A1.visited_on, INTERVAL 6 DAY) AND A1.visited_on) AS amount,
+  ROUND((
+    SELECT SUM(amount)/7
+    FROM Customer
+    WHERE visited_on BETWEEN DATE_SUB(A1.visited_on, INTERVAL 6 DAY) AND A1.visited_on
+  ), 2) AS average_amount
+FROM Customer AS A1
+WHERE visited_on >= (
+  SELECT DATE_ADD(MIN(visited_on), INTERVAL 6 DAY)
+  FROM Customer
+)
+GROUP BY visited_on
+ORDER BY visited_on
+
+🔹 1. FROM Customer AS A1
+
+This gives the base alias A1 to loop through each row of the table.
+
+🧠 Why use alias?
+It allows you to refer to the same table multiple times inside subqueries. Here, you are querying the same table Customer inside a subquery, so aliasing is necessary.
+🔹 2. WHERE visited_on >= (SELECT DATE_ADD(MIN(visited_on), INTERVAL 6 DAY))
+➤ Let's break the inner part first:
+
+SELECT DATE_ADD(MIN(visited_on), INTERVAL 6 DAY) FROM Customer
+
+    MIN(visited_on) = gets the earliest date in the table.
+
+        Example: if your table starts from 2024-01-01, then MIN(visited_on) = '2024-01-01'
+
+    DATE_ADD(..., INTERVAL 6 DAY) = adds 6 days to it.
+
+        So: '2024-01-01' + 6 days = '2024-01-07'
+
+✅ This means: start calculating from the 7th day onward, since we want 7-day rolling totals and need at least 7 days of data to begin.
+
+So, this whole clause:
+
+WHERE visited_on >= (SELECT DATE_ADD(MIN(visited_on), INTERVAL 6 DAY) FROM Customer)
+
+🔍 Filters only those records where visited_on >= '2024-01-07'
+🔹 3. SELECT visited_on
+
+This is the date for which we’re calculating the 7-day total and average.
+🔹 4. The Subquery for amount
+
+(SELECT SUM(amount)
+ FROM Customer
+ WHERE visited_on BETWEEN DATE_SUB(A1.visited_on, INTERVAL 6 DAY) AND A1.visited_on) AS amount
+
+Let's break it fully:
+
+    A1.visited_on = current row's date
+
+    DATE_SUB(A1.visited_on, INTERVAL 6 DAY) = goes back 6 days
+
+    BETWEEN ... AND A1.visited_on = gives a range of 7 days
+
+📅 Example:
+For A1.visited_on = 2024-01-07, the date range becomes:
+BETWEEN '2024-01-01' AND '2024-01-07'
+
+Now inside this window, it:
+
+    Filters all rows where visited_on falls in this 7-day window
+
+    Calculates SUM(amount) across those days
+
+So this gives the total amount spent in last 7 days (including the day).
+🔹 5. The Subquery for average_amount
+
+ROUND((
+  SELECT SUM(amount)/7
+  FROM Customer
+  WHERE visited_on BETWEEN DATE_SUB(A1.visited_on, INTERVAL 6 DAY) AND A1.visited_on
+), 2) AS average_amount
+
+This is almost the same as above, but instead of SUM(amount), we do:
+
+    SUM(amount)/7 → to calculate daily average in 7-day window
+
+    ROUND(..., 2) → rounds to 2 decimal places
+
+🎯 Example:
+
+If the total for 7 days = 700, then average = 700 / 7 = 100.00
+🔹 6. GROUP BY visited_on
+
+This ensures that the result is grouped by each day (though here it may not be strictly necessary since you're selecting per-row).
+
+But it's safe and good practice when using aggregation.
+🔹 7. ORDER BY visited_on
+
+This just sorts the final output chronologically.
+🧪 Putting It All Together – Real Example
+
+Suppose we have this data:
+visited_on	amount
+2024-01-01	100
+2024-01-02	200
+2024-01-03	300
+2024-01-04	400
+2024-01-05	100
+2024-01-06	150
+2024-01-07	250
+2024-01-08	100
+2024-01-09	300
+
+We want to calculate:
+For 2024-01-07:
+
+    7-day window: '2024-01-01' to '2024-01-07'
+
+    SUM(amount) = 100 + 200 + 300 + 400 + 100 + 150 + 250 = 1500
+
+    AVG = 1500 / 7 = 214.29
+
+For 2024-01-08:
+
+    Window: '2024-01-02' to '2024-01-08'
+
+    SUM = 200 + 300 + 400 + 100 + 150 + 250 + 100 = 1500
+
+    AVG = 214.29
+
+For 2024-01-09:
+
+    Window: '2024-01-03' to '2024-01-09'
+
+    SUM = 300 + 400 + 100 + 150 + 250 + 100 + 300 = 1600
+
+    AVG = 228.57
+
+🧾 Final Output
+visited_on	amount	average_amount
+2024-01-07	1500	214.29
+2024-01-08	1500	214.29
+2024-01-09	1600	228.57
+✅ Summary: What You Learned
+Syntax / Keyword	Purpose
+AS A1	Creates an alias for reusing the table in subqueries
+DATE_SUB(date, INTERVAL)	Go backward in time from the current date
+BETWEEN ... AND ...	Create a range of dates
+SUM(amount)	Total amount in date range
+ROUND(value, 2)	Round average to 2 decimal places
+GROUP BY	Ensure rows are grouped by date
+ORDER BY	Sort results by date chronologically
+Subqueries	Used to calculate rolling total and average for each main row
+
+Would you like a diagram or visualized timeline to go with this? Or do you want me to rewrite the query with CTEs or window functions for better readability?
+
+Let me know how you'd like to store or save this for later — PDF, markdown file, or export to notes?
