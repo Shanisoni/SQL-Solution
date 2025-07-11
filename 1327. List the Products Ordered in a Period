@@ -1,0 +1,107 @@
+📘 SQL Note: Detailed Breakdown of the Query to Get Products with ≥100 Units Ordered in February 2020
+✅ Query:
+
+SELECT A1.product_name, SUM(unit) AS unit
+FROM Products AS A1
+LEFT JOIN Orders AS A2 ON A1.product_id = A2.product_id
+WHERE MONTH(order_date) = 2 AND YEAR(order_date) = 2020
+GROUP BY A1.product_id
+HAVING SUM(unit) >= 100;
+
+🎯 Objective:
+
+    Find all product names that had 100 or more units ordered in the month of February 2020, and return the total units sold during that time.
+
+🔍 Step-by-Step Explanation:
+1️⃣ FROM Clause + Aliasing
+
+FROM Products AS A1
+
+    The query starts with the Products table.
+
+    Alias A1 is used as a short reference for easier joins and readability.
+
+2️⃣ LEFT JOIN Clause
+
+LEFT JOIN Orders AS A2 ON A1.product_id = A2.product_id
+
+    This performs a LEFT JOIN to bring in all rows from Products (A1) and any matching rows from Orders (A2) based on product_id.
+
+    Even if no orders exist for a product, it still stays in the result (though we'll filter later).
+
+🧠 Note: In this context, INNER JOIN would also be valid and slightly more optimal, since WHERE filters out nulls anyway.
+3️⃣ WHERE Clause: Filter for February 2020
+
+WHERE MONTH(order_date) = 2 AND YEAR(order_date) = 2020
+
+    Filters out orders that do not belong to February 2020.
+
+    MONTH(order_date) = 2 selects rows where the order month is February.
+
+    YEAR(order_date) = 2020 selects only orders from the year 2020.
+
+🧠 Tip: This is a readable and beginner-friendly way to filter by date. For performance, consider using:
+
+WHERE order_date BETWEEN '2020-02-01' AND '2020-02-29'
+
+4️⃣ GROUP BY Clause
+
+GROUP BY A1.product_id
+
+    After filtering, this clause groups the records by each product, using its unique product_id.
+
+    This enables aggregation functions like SUM() to work per product.
+
+5️⃣ SELECT Clause
+
+SELECT A1.product_name, SUM(unit) AS unit
+
+    From each product group, we:
+
+        Extract product_name
+
+        Compute the total units ordered via SUM(unit), aliased as unit
+
+6️⃣ HAVING Clause
+
+HAVING SUM(unit) >= 100
+
+    Unlike WHERE, which filters rows before grouping, HAVING filters after aggregation.
+
+    This keeps only products whose total ordered units ≥ 100.
+
+✅ Final Output:
+
+Returns a table:
+product_name	unit
+Leetcode Solutions	130
+Leetcode Kit	100
+🧠 Key Concepts Demonstrated in Your Query:
+Concept	Used In
+Table Aliasing	AS A1, AS A2
+Joins	LEFT JOIN to combine tables
+Date filtering	MONTH(), YEAR() in WHERE clause
+Grouping	GROUP BY for aggregation
+Aggregation	SUM(unit) to compute total units
+Post-aggregation filter	HAVING to keep results with unit ≥ 100
+🚀 Optimization Tip (Optional for Advanced Use)
+
+If you’re 100% sure that you only care about orders in Feb 2020, and you don't want products with no sales to appear at all:
+🔁 Replace LEFT JOIN with INNER JOIN — it's faster:
+
+FROM Products AS A1
+INNER JOIN Orders AS A2 ON A1.product_id = A2.product_id
+
+✅ Verdict:
+
+Your query is correct, efficient, and shows strong understanding of:
+
+    joins
+
+    date filtering
+
+    grouping and aggregation
+
+    post-aggregation filtering
+
+This is exactly how we write clear, maintainable analytical SQL in real-world scenarios.
