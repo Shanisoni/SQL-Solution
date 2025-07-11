@@ -1,0 +1,90 @@
+Absolutely Shani! Let's walk through your DELETE query in ultra-detailed steps, including:
+
+    Input table
+
+    Step-by-step execution of each part of the query
+
+    Final output table after deletion
+
+🧾 Initial Table: Person
+id	email
+1	john@example.com
+2	bob@example.com
+3	john@example.com
+4	alice@example.com
+5	john@example.com
+6	bob@example.com
+🧠 Query:
+
+DELETE FROM Person
+WHERE id NOT IN (
+    SELECT MIN(id)
+    FROM (SELECT * FROM Person) AS p
+    GROUP BY email
+);
+
+🧩 Step-by-step Breakdown:
+🔹 Step 1: SELECT * FROM Person
+
+Just retrieves all rows from the table:
+
+id | email
+---|-------------------
+1  | john@example.com
+2  | bob@example.com
+3  | john@example.com
+4  | alice@example.com
+5  | john@example.com
+6  | bob@example.com
+
+🔹 Step 2: Wrapping it inside:
+
+FROM (SELECT * FROM Person) AS p
+
+This is required in MySQL so we can select from Person while also deleting from it. It acts like a temporary view named p.
+🔹 Step 3: Grouping & selecting MIN(id):
+
+SELECT MIN(id)
+FROM (SELECT * FROM Person) AS p
+GROUP BY email
+
+This groups rows by email and returns the smallest id for each group.
+👇 Output of this subquery:
+MIN(id)	email
+1	john@example.com
+2	bob@example.com
+4	alice@example.com
+
+So this subquery returns:
+
+(1, 2, 4)
+
+These are the first occurrence IDs for each unique email.
+🔹 Step 4: Outer DELETE:
+
+DELETE FROM Person
+WHERE id NOT IN (1, 2, 4);
+
+Now, we delete all rows whose id is NOT in (1, 2, 4).
+
+So rows with these IDs will be deleted:
+
+    id = 3 (john@example.com) ✅ delete
+
+    id = 5 (john@example.com) ✅ delete
+
+    id = 6 (bob@example.com) ✅ delete
+
+✅ Final Output Table (Person after deletion):
+id	email
+1	john@example.com
+2	bob@example.com
+4	alice@example.com
+
+🎯 All duplicates are removed. Only one row per unique email remains, and it's always the smallest id.
+🔁 Summary of Query Logic:
+Step	Action	Result
+1	Select all rows	All rows from Person
+2	Group by email, get MIN(id)	(1, 2, 4)
+3	Delete where id is not in (1, 2, 4)	Delete rows 3, 5, 6
+4	Final table contains only unique emails	✅ Success
