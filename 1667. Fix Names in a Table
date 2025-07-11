@@ -1,0 +1,217 @@
+✅ Query:
+
+SELECT user_id , 
+       CONCAT(UPPER(LEFT(name , 1)), LOWER(RIGHT(name, LENGTH(name) - 1))) AS name
+FROM Users
+ORDER BY user_id;
+
+🎯 Purpose of This Query:
+
+To return a list of all users with:
+
+    their original user_id
+
+    their name properly capitalized:
+    → First letter uppercase, rest lowercase
+
+✅ Step-by-Step Breakdown
+🔹 SELECT clause:
+
+SELECT user_id ,
+       CONCAT(UPPER(LEFT(name , 1)), LOWER(RIGHT(name, LENGTH(name) - 1))) AS name
+
+This tells the SQL engine:
+
+    I want to display two columns:
+
+        user_id (as-is)
+
+        a computed column name, where I apply formatting functions to the original name column
+
+Let’s understand each function inside the CONCAT(...) step by step 👇
+🔸 1. CONCAT(...)
+
+Purpose: Joins multiple strings together into one final string.
+✅ Syntax:
+
+CONCAT(string1, string2, ..., stringN)
+
+💡 Use Case:
+
+When you want to build one string from parts. Here, we want:
+
+    First character as uppercase
+
+    Remaining characters as lowercase
+
+👉 Example:
+
+CONCAT('J', 'ohn') → 'John'
+
+🔸 2. LEFT(name, 1)
+
+Purpose: Extracts the first N characters from the beginning of the string.
+✅ Syntax:
+
+LEFT(string, number_of_characters)
+
+💡 In this query:
+
+LEFT(name, 1)
+
+    name → the original column containing the name (e.g., 'sHaNi')
+
+    1 → number of characters to take from the left
+
+    So: LEFT('sHaNi', 1) → 's'
+
+📌 We want the first character so we can convert it to uppercase.
+🔸 3. UPPER(...)
+
+Purpose: Converts the entire string passed to it into uppercase.
+✅ Syntax:
+
+UPPER(string)
+
+💡 In this query:
+
+UPPER(LEFT(name, 1))
+
+    Takes 's' → becomes 'S'
+
+So now you’ve processed:
+
+    First letter only → LEFT(name, 1)
+
+    Made it uppercase → UPPER(...)
+
+🔸 4. LENGTH(name)
+
+Purpose: Returns the number of characters in the string.
+✅ Syntax:
+
+LENGTH(string)
+
+💡 In this query:
+
+LENGTH(name) - 1
+
+    Suppose name = 'sHaNi'
+
+    LENGTH(name) → 5
+
+    Subtract 1 → 4 (we are skipping the first letter)
+
+📌 Used to determine how many characters are after the first one.
+🔸 5. RIGHT(name, LENGTH(name) - 1)
+
+Purpose: Extracts the last N characters from a string.
+✅ Syntax:
+
+RIGHT(string, number_of_characters)
+
+💡 In this query:
+
+RIGHT(name, LENGTH(name) - 1)
+
+If name = 'sHaNi':
+
+    LENGTH(name) = 5
+
+    RIGHT(name, 4) → 'HaNi'
+
+📌 This gets the rest of the name (excluding the first letter).
+🔸 6. LOWER(...)
+
+Purpose: Converts the input string to lowercase.
+✅ Syntax:
+
+LOWER(string)
+
+💡 In this query:
+
+LOWER(RIGHT(name, LENGTH(name) - 1))
+
+    Takes 'HaNi' → becomes 'hani'
+
+📌 Makes rest of the name lowercase to ensure consistent formatting.
+✅ Bringing it all together:
+
+CONCAT(UPPER(LEFT(name , 1)), LOWER(RIGHT(name, LENGTH(name) - 1)))
+
+With name = 'sHaNi':
+
+    First letter → LEFT(name, 1) = 's' → UPPER() → 'S'
+
+    Remaining → RIGHT(name, 4) = 'HaNi' → LOWER() → 'hani'
+
+    Final → 'S' + 'hani' = 'Shani'
+
+🔹 AS name
+
+This is an alias. It renames the output column to name.
+
+So your final result will be:
+
+user_id | name
+--------|-------
+1       | Shani
+
+🔹 FROM Users
+
+Specifies the table you are querying from.
+
+    Users is the table that contains:
+
+        user_id
+
+        name
+
+🔹 ORDER BY user_id
+
+Sorts the final results by user_id in ascending order.
+
+If your table has:
+
+user_id | name
+--------|-------
+3       | sHaNi
+1       | rAhUl
+2       | gARy
+
+Your result will be:
+
+user_id | name
+--------|-------
+1       | Rahul
+2       | Gary
+3       | Shani
+
+✅ Final Output Example
+
+Given table:
+
+user_id | name
+--------|--------
+1       | jOhN
+2       | sHaNi
+3       | aLICE
+
+After running your query:
+
+user_id | name
+--------|-------
+1       | John
+2       | Shani
+3       | Alice
+
+🔁 Summary of Functions Used
+Function	Purpose	Example Input	Output
+LEFT()	First N chars	'sHaNi', 1	's'
+RIGHT()	Last N chars	'sHaNi', 4	'HaNi'
+LENGTH()	Length of string	'sHaNi'	5
+UPPER()	Make string uppercase	's'	'S'
+LOWER()	Make string lowercase	'HaNi'	'hani'
+CONCAT()	Merge two strings	'S' + 'hani'	'Shani'
+
+If you'd like, I can give a version of this query that updates the original table, or works with full names with spaces ("john DOE" → "John Doe"), just let me know bro 🔥
