@@ -1,0 +1,14 @@
+SELECT 
+    dept.name AS Department, 
+    emp.name AS Employee, 
+    emp.salary AS Salary
+FROM (
+    SELECT 
+        e.name AS Employee,
+        e.salary,
+        d.name AS Department,
+        DENSE_RANK() OVER (PARTITION BY d.name ORDER BY e.salary DESC) AS rnk
+    FROM Employee e
+    JOIN Department d ON e.departmentId = d.id
+) AS ranked
+WHERE ranked.rnk <= 3;
